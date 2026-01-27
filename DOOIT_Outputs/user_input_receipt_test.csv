@@ -1,0 +1,24 @@
+Input Field,Value
+Loaded Dataset File,C:/Users/Green/Desktop/coding projects/eda schniz/DOOIT/DOOIT_Outputs/cars_output.csv
+Comparison Dataset File,C:/Users/Green/Desktop/coding projects/eda schniz/DOOIT/DOOIT_Outputs/cars_output.csv
+Missing Value Imputation Applied,True
+SUM Column Created,False
+Custom Column Created,False
+Binary Column Detected: value,"0=Invalid, 1=Valid"
+Thresholds File,None
+Highlight Feature,acceleration
+X Feature,mpg
+Y Feature 1,acceleration
+Y Feature 2,weight
+Plot Type,Scatter
+Stack Y Features,True
+Show Trendline,True
+Plot Residuals,False
+Bootstrap Data,False
+Vary Transparency by Density,True
+Annotate with Stats,True
+Plot Comparison,True
+X-intercepts,"20,40"
+X-intercept Names,"bad,good"
+Y-intercepts,
+Y-intercept Names,
