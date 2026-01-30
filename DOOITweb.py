@@ -1032,22 +1032,8 @@ def main():
             plot_pairgrid(df_for_pairgrid, highlight_feature=highlight, thresholds=thresholds)
             st.pyplot(plt.gcf())
             plt.close()
-                
-                if custom_name and formula and st.button("Create Custom Column"):
-                    try:
-                        # Build local dict for eval
-                        local_vars = {'np': np, 'math': math}
-                        for var, col in var_map.items():
-                            if col:
-                                local_vars[var] = df[col]
-                        
-                        result = eval(formula, {"__builtins__": None}, local_vars)
-                        df[custom_name] = result
-                        st.success(f"Created custom column '{custom_name}'")
-                    except Exception as e:
-                        st.error(f"Formula error: {e}")
-            
-            # Column deletion
+        
+        # Overlay plot section
             delete_cols_check = st.checkbox("Delete columns?")
             if delete_cols_check:
                 cols_to_delete = st.multiselect("Select columns to delete", list(df.columns))
