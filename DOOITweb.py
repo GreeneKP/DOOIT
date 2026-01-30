@@ -1,13 +1,4 @@
-"""
-DOOIT Web - Data Observation & Overlay Insights Tool
-Web-based version using Streamlit
 
-To run locally: streamlit run DOOITweb.py
-To deploy: Push to GitHub and deploy on Streamlit Cloud (share.streamlit.io)
-
-Access URL (after deployment): https://your-app-name.streamlit.app
-For local testing: http://localhost:8501
-"""
 
 import streamlit as st
 import numpy as np
@@ -950,6 +941,49 @@ def main():
                         val_1 = unique_vals[0] if unique_vals[0] != val_0 else unique_vals[1]
                         df[col] = df[col].map({val_0: 0, val_1: 1})
             
+            # Filter by non-numeric columns
+            non_numeric_cols = [col for col in df.columns if col not in df.select_dtypes(include=[np.number]).columns]
+            if non_numeric_cols:
+                filter_data = st.checkbox("Filter by non-numeric columns?")
+                if filter_data:
+                    st.write("**Filter Configuration** (combine up to 5 filters)")
+                    filter_queries = []
+                    for i in range(5):
+                        col1, col2, col3 = st.columns(3)
+                        with col1:
+                            filter_col = st.selectbox(f"Filter {i+1} Column", [""] + non_numeric_cols, key=f"fcol_{i}")
+                        with col2:
+                            if filter_col:
+                                filter_val = st.selectbox(f"Value", df[filter_col].unique(), key=f"fval_{i}")
+                            else:
+                                filter_val = None
+                        with col3:
+                            if i > 0:
+                                filter_logic = st.selectbox("Logic", ["", "AND", "OR"], key=f"flogic_{i}")
+                            else:
+                                filter_logic = None
+                        
+                        if filter_col and filter_val is not None:
+                            filter_queries.append((filter_col, filter_val, filter_logic))
+                    
+                    if filter_queries and st.button("Apply Filters"):
+                        query = ''
+                        for idx, (col, val, logic) in enumerate(filter_queries):
+                            cond = f"`{col}` == @val"
+                            if idx == 0:
+                                query += f"`{col}` == '{val}'"
+                            else:
+                                op = logic.lower() if logic else 'and'
+                                if op == 'and':
+                                    query += f" & `{col}` == '{val}'"
+                                else:
+                                    query += f" | `{col}` == '{val}'"
+                        try:
+                            df = df.query(query)
+                            st.success(f"Filters applied! {len(df)} rows remaining")
+                        except Exception as e:
+                            st.error(f"Filter error: {e}")
+            
             # SUM column creation
             numeric_cols = list(df.select_dtypes(include=[np.number]).columns)
             create_sum = st.checkbox("Create SUM column?")
@@ -958,6 +992,65 @@ def main():
                 sum_name = st.text_input("Name for SUM column", "SUM")
                 if sum_cols and sum_name and st.button("Create SUM Column"):
                     df[sum_name] = df[sum_cols].sum(axis=1)
+                    st.success(f"Created column '{sum_name}'")
+            
+            # Custom column creation
+            create, col3 = st.columns(3)
+        with col1:
+            highlight_feature = st.selectbox("Highlight feature (optional)", ["None"] + list(df.select_dtypes(include=[np.number]).columns))
+        with col2:
+            # Load thresholds
+            load_thresholds = st.checkbox("Load thresholds from CSV?")
+            thresholds = None
+            if load_thresholds:
+                threshold_file = st.file_uploader("Upload threshold CSV", type=['csv'], key='thresholds')
+                if threshold_file:
+                    df_thresh = pd.read_csv(threshold_file)
+                    threshold_method = st.radio("Threshold method", ["Latest value (last row)", "Min/Max values"])
+                    
+                    if threshold_method == "Latest value (last row)":
+                        last_row = df_thresh.iloc[-1]
+                        thresholds = {col: last_row[col] for col in df_thresh.columns}
+                    else:
+                        thresholds = {}
+                        for col in df_thresh.columns:
+                            min_val = df_thresh[col].min()
+                            max_val = df_thresh[col].max()
+                            thresholds[col] = [min_val, max_val]
+                    st.success("Thresholds loaded!")
+        with col3:
+            show_pairplot = st.button("Generate Pair Plot")
+        
+        if show_pairplot:
+            df_for_pairgrid = df.copy()
+            for col in df_for_pairgrid.columns:
+                if pd.api.types.is_datetime64_any_dtype(df_for_pairgrid[col]):
+                    df_for_pairgrid[col] = df_for_pairgrid[col].astype('int64') / 10**9
+            
+            highlight = None if highlight_feature == "None" else highlight_feature
+            fig = plt.figure(figsize=(12, 10))
+            plot_pairgrid(df_for_pairgrid, highlight_feature=highlight, thresholds=thresholds
+                            var = chr(ord('a') + idx)
+                            with cols[j]:
+                                selected = st.selectbox(f"Variable {var}", [""] + numeric_cols_for_custom, key=f"var_{var}")
+                                if selected:
+                                    var_map[var] = selected
+                
+                formula = st.text_input("Formula (e.g., a + b, np.sqrt(c), a * b / c)", "")
+                
+                if custom_name and formula and st.button("Create Custom Column"):
+                    try:
+                        # Build local dict for eval
+                        local_vars = {'np': np, 'math': math}
+                        for var, col in var_map.items():
+                            if col:
+                                local_vars[var] = df[col]
+                        
+                        result = eval(formula, {"__builtins__": None}, local_vars)
+                        df[custom_name] = result
+                        st.success(f"Created custom column '{custom_name}'")
+                    except Exception as e:
+                        st.error(f"Formula error: {e}")
             
             # Column deletion
             delete_cols_check = st.checkbox("Delete columns?")
@@ -965,6 +1058,7 @@ def main():
                 cols_to_delete = st.multiselect("Select columns to delete", list(df.columns))
                 if cols_to_delete and st.button("Delete Selected Columns"):
                     df = df.drop(columns=cols_to_delete)
+                    st.success(f"Deleted {len(cols_to_delete)} columns")
             
             if st.button("Process Data"):
                 df_clean = clean_numeric_df(df)
@@ -1133,32 +1227,3 @@ def main():
 if __name__ == '__main__':
     main()
 
-"""
-DEPLOYMENT INSTRUCTIONS:
-========================
-
-LOCAL ACCESS:
-1. Install requirements: pip install -r requirements.txt streamlit
-2. Run: streamlit run DOOITweb.py
-3. Access at: http://localhost:8501
-
-CLOUD DEPLOYMENT (FREE):
-1. Create GitHub repository
-2. Push this file and requirements.txt
-3. Go to https://share.streamlit.io
-4. Connect your GitHub repo
-5. Deploy and get your link: https://[your-app-name].streamlit.app
-
-REQUIREMENTS.txt must include:
-- streamlit
-- numpy
-- pandas
-- seaborn
-- matplotlib
-- scipy
-- scikit-learn
-
-ACCESS LINK EXAMPLES:
-- Local: http://localhost:8501
-- Deployed: https://dooit-web.streamlit.app (customize after deployment)
-"""
