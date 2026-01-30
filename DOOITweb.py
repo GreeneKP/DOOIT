@@ -1029,14 +1029,9 @@ def main():
             
             highlight = None if highlight_feature == "None" else highlight_feature
             fig = plt.figure(figsize=(12, 10))
-            plot_pairgrid(df_for_pairgrid, highlight_feature=highlight, thresholds=thresholds
-                            var = chr(ord('a') + idx)
-                            with cols[j]:
-                                selected = st.selectbox(f"Variable {var}", [""] + numeric_cols_for_custom, key=f"var_{var}")
-                                if selected:
-                                    var_map[var] = selected
-                
-                formula = st.text_input("Formula (e.g., a + b, np.sqrt(c), a * b / c)", "")
+            plot_pairgrid(df_for_pairgrid, highlight_feature=highlight, thresholds=thresholds)
+            st.pyplot(plt.gcf())
+            plt.close()
                 
                 if custom_name and formula and st.button("Create Custom Column"):
                     try:
