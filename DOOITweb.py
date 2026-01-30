@@ -995,7 +995,90 @@ def main():
                     st.success(f"Created column '{sum_name}'")
             
             # Custom column creation
-            create, col3 = st.columns(3)
+            create_custom = st.checkbox("Create custom column with formula?")
+            if create_custom:
+                st.write("**Custom Column Formula** (use variables a-j for columns)")
+                custom_name = st.text_input("Custom column name", "custom")
+                
+                # Variable mapping
+                st.write("Assign columns to variables:")
+                var_map = {}
+                numeric_cols_for_custom = list(df.select_dtypes(include=[np.number]).columns)
+                cols_per_row = 2
+                for i in range(0, 10, cols_per_row):
+                    cols = st.columns(cols_per_row)
+                    for j in range(cols_per_row):
+                        idx = i + j
+                        if idx < 10:
+                            var = chr(ord('a') + idx)
+                            with cols[j]:
+                                selected = st.selectbox(f"Variable {var}", [""] + numeric_cols_for_custom, key=f"var_{var}")
+                                if selected:
+                                    var_map[var] = selected
+                
+                formula = st.text_input("Formula (e.g., a + b, np.sqrt(c), a * b / c)", "")
+                
+                if custom_name and formula and st.button("Create Custom Column"):
+                    try:
+                        # Build local dict for eval
+                        local_vars = {'np': np, 'math': math}
+                        for var, col in var_map.items():
+                            if col:
+                                local_vars[var] = df[col]
+                        
+                        result = eval(formula, {"__builtins__": None}, local_vars)
+                        df[custom_name] = result
+                        st.success(f"Created custom column '{custom_name}'")
+                    except Exception as e:
+                        st.error(f"Formula error: {e}")
+            
+            # Column deletion
+            delete_cols_check = st.checkbox("Delete columns?")
+            if delete_cols_check:
+                cols_to_delete = st.multiselect("Select columns to delete", list(df.columns))
+                if cols_to_delete and st.button("Delete Selected Columns"):
+                    df = df.drop(columns=cols_to_delete)
+                    st.success(f"Deleted {len(cols_to_delete)} columns")
+            
+            if st.button("Process Data"):
+                df_clean = clean_numeric_df(df)
+                if df_clean.shape[1] < 2:
+                    st.error("Not enough numeric columns for plotting")
+                else:
+                    st.session_state.df = df_clean
+                    st.session_state.processed = True
+                    st.success(f"Data loaded: {df_clean.shape[0]} rows, {df_clean.shape[1]} columns")
+                    st.rerun()
+        
+        # Comparison dataset
+        st.header("📊 Comparison Dataset")
+        comp_file = st.file_uploader("Upload Comparison CSV", type=['csv'], key='comparison')
+        if comp_file:
+            df_comp = pd.read_csv(comp_file)
+            if 'timestamp' in df_comp.columns:
+                try:
+                    df_comp['timestamp'] = pd.to_datetime(df_comp['timestamp'], unit='s')
+                except:
+                    pass
+            df_comp = clean_numeric_df(df_comp)
+            st.session_state.df_comparison = df_comp
+            st.success(f"Comparison loaded: {df_comp.shape[0]} rows, {df_comp.shape[1]} columns")
+    
+    # Main content area
+    if st.session_state.df is not None:
+        df = st.session_state.df
+        
+        # Display dataframe
+        with st.expander("📋 View DataFrame", expanded=False):
+            st.dataframe(df, use_container_width=True)
+            
+            # Export CSV
+            csv = df.to_csv(index=False).encode('utf-8')
+            st.download_button("Download CSV", csv, "dooit_export.csv", "text/csv")
+        
+        # Pair plot section
+        st.header("🔀 Pair Plot")
+        col1, col2, col3 = st.columns(3)
         with col1:
             highlight_feature = st.selectbox("Highlight feature (optional)", ["None"] + list(df.select_dtypes(include=[np.number]).columns))
         with col2:
