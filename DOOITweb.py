@@ -1070,7 +1070,7 @@ def main():
         
         # Display dataframe
         with st.expander("📋 View DataFrame", expanded=False):
-            st.dataframe(df, use_container_width=True)
+            st.dataframe(df, width='stretch')
             
             # Export CSV
             csv = df.to_csv(index=False).encode('utf-8')
@@ -1080,7 +1080,7 @@ def main():
         st.header("🔀 Pair Plot")
         col1, col2, col3 = st.columns(3)
         with col1:
-            highlight_feature = st.selectbox("Highlight feature (optional)", ["None"] + list(df.select_dtypes(include=[np.number]).columns))
+            highlight_feature = st.selectbox("Highlight feature (optional)", ["None"] + list(df.select_dtypes(include=[np.number]).columns), key='highlight_pairplot_1')
         with col2:
             # Load thresholds
             load_thresholds = st.checkbox("Load thresholds from CSV?")
@@ -1120,7 +1120,7 @@ def main():
         st.header("🔀 Pair Plot")
         col1, col2 = st.columns(2)
         with col1:
-            highlight_feature = st.selectbox("Highlight feature (optional)", ["None"] + list(df.select_dtypes(include=[np.number]).columns))
+            highlight_feature = st.selectbox("Highlight feature (optional)", ["None"] + list(df.select_dtypes(include=[np.number]).columns), key='highlight_pairplot_2')
         with col2:
             show_pairplot = st.button("Generate Pair Plot")
         
