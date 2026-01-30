@@ -896,7 +896,7 @@ plot_overlay.alpha = False  # default
 def main():
     st.set_page_config(page_title="DOOIT Web", layout="wide", page_icon="📊")
     
-    st.title("📊 DOOIT - Data Observation & Overlay Insights Tool")
+    st.title("📊 DOOIT - Data Orientation & Overlay Investigatory Tool")
     st.markdown("**Interactive Data Analysis and Visualization**")
     
     # Initialize session state
@@ -1243,4 +1243,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
