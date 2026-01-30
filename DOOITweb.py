@@ -1116,26 +1116,6 @@ def main():
             st.pyplot(plt.gcf())
             plt.close()
         
-        # Pair plot section
-        st.header("🔀 Pair Plot")
-        col1, col2 = st.columns(2)
-        with col1:
-            highlight_feature = st.selectbox("Highlight feature (optional)", ["None"] + list(df.select_dtypes(include=[np.number]).columns), key='highlight_pairplot_2')
-        with col2:
-            show_pairplot = st.button("Generate Pair Plot", key='gen_pairplot_2')
-        
-        if show_pairplot:
-            df_for_pairgrid = df.copy()
-            for col in df_for_pairgrid.columns:
-                if pd.api.types.is_datetime64_any_dtype(df_for_pairgrid[col]):
-                    df_for_pairgrid[col] = df_for_pairgrid[col].astype('int64') / 10**9
-            
-            highlight = None if highlight_feature == "None" else highlight_feature
-            fig = plt.figure(figsize=(12, 10))
-            plot_pairgrid(df_for_pairgrid, highlight_feature=highlight)
-            st.pyplot(plt.gcf())
-            plt.close()
-        
         # Overlay plot section
         st.header("📈 Overlay Plot")
         
@@ -1174,7 +1154,9 @@ def main():
         
         with col2:
             st.text_input("X-intercepts (comma-separated)", key="x_intercepts")
+            st.text_input("X-intercept names (comma-separated)", key="x_intercept_names")
             st.text_input("Y-intercepts (comma-separated)", key="y_intercepts")
+            st.text_input("Y-intercept names (comma-separated)", key="y_intercept_names")
         
         # Generate overlay plot
         if st.button("Generate Overlay Plot"):
@@ -1198,6 +1180,9 @@ def main():
                     # Parse intercepts
                     x_intercepts = None
                     y_intercepts = None
+                    x_names = None
+                    y_names = None
+                    
                     if st.session_state.get("x_intercepts"):
                         try:
                             x_intercepts = [float(x.strip()) for x in st.session_state.x_intercepts.split(',') if x.strip()]
@@ -1208,6 +1193,16 @@ def main():
                             y_intercepts = [float(y.strip()) for y in st.session_state.y_intercepts.split(',') if y.strip()]
                         except:
                             pass
+                    if st.session_state.get("x_intercept_names"):
+                        try:
+                            x_names = [x.strip() for x in st.session_state.x_intercept_names.split(',') if x.strip()]
+                        except:
+                            pass
+                    if st.session_state.get("y_intercept_names"):
+                        try:
+                            y_names = [y.strip() for y in st.session_state.y_intercept_names.split(',') if y.strip()]
+                        except:
+                            pass
                     
                     # Generate plot
                     fig = plt.figure(figsize=(12, 8))
@@ -1215,6 +1210,8 @@ def main():
                         df, x_col, y_cols_filtered,
                         x_intercepts=x_intercepts,
                         y_intercepts=y_intercepts,
+                        x_names=x_names,
+                        y_names=y_names,
                         df_comparison=st.session_state.df_comparison if plot_comparison else None
                     )
                     st.pyplot(plt.gcf())
