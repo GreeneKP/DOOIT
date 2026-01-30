@@ -1133,7 +1133,35 @@ def main():
 if __name__ == '__main__':
     main()
 
-class CustomColumnDialog:
+"""
+DEPLOYMENT INSTRUCTIONS:
+========================
+
+LOCAL ACCESS:
+1. Install requirements: pip install -r requirements.txt streamlit
+2. Run: streamlit run DOOITweb.py
+3. Access at: http://localhost:8501
+
+CLOUD DEPLOYMENT (FREE):
+1. Create GitHub repository
+2. Push this file and requirements.txt
+3. Go to https://share.streamlit.io
+4. Connect your GitHub repo
+5. Deploy and get your link: https://[your-app-name].streamlit.app
+
+REQUIREMENTS.txt must include:
+- streamlit
+- numpy
+- pandas
+- seaborn
+- matplotlib
+- scipy
+- scikit-learn
+
+ACCESS LINK EXAMPLES:
+- Local: http://localhost:8501
+- Deployed: https://dooit-web.streamlit.app (customize after deployment)
+"""
     def __init__(self, df, parent=None):
         super().__init__(parent)
         self.setWindowTitle('Create Custom Value Column')
