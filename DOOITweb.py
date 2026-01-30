@@ -1116,50 +1116,6 @@ def main():
             st.pyplot(plt.gcf())
             plt.close()
         
-        # Overlay plot section
-            delete_cols_check = st.checkbox("Delete columns?")
-            if delete_cols_check:
-                cols_to_delete = st.multiselect("Select columns to delete", list(df.columns))
-                if cols_to_delete and st.button("Delete Selected Columns"):
-                    df = df.drop(columns=cols_to_delete)
-                    st.success(f"Deleted {len(cols_to_delete)} columns")
-            
-            if st.button("Process Data"):
-                df_clean = clean_numeric_df(df)
-                if df_clean.shape[1] < 2:
-                    st.error("Not enough numeric columns for plotting")
-                else:
-                    st.session_state.df = df_clean
-                    st.session_state.processed = True
-                    st.success(f"Data loaded: {df_clean.shape[0]} rows, {df_clean.shape[1]} columns")
-                    st.rerun()
-        
-        # Comparison dataset
-        st.header("📊 Comparison Dataset")
-        comp_file = st.file_uploader("Upload Comparison CSV", type=['csv'], key='comparison')
-        if comp_file:
-            df_comp = pd.read_csv(comp_file)
-            if 'timestamp' in df_comp.columns:
-                try:
-                    df_comp['timestamp'] = pd.to_datetime(df_comp['timestamp'], unit='s')
-                except:
-                    pass
-            df_comp = clean_numeric_df(df_comp)
-            st.session_state.df_comparison = df_comp
-            st.success(f"Comparison loaded: {df_comp.shape[0]} rows, {df_comp.shape[1]} columns")
-    
-    # Main content area
-    if st.session_state.df is not None:
-        df = st.session_state.df
-        
-        # Display dataframe
-        with st.expander("📋 View DataFrame", expanded=False):
-            st.dataframe(df, use_container_width=True)
-            
-            # Export CSV
-            csv = df.to_csv(index=False).encode('utf-8')
-            st.download_button("Download CSV", csv, "dooit_export.csv", "text/csv")
-        
         # Pair plot section
         st.header("🔀 Pair Plot")
         col1, col2 = st.columns(2)
