@@ -1102,7 +1102,7 @@ def main():
                             thresholds[col] = [min_val, max_val]
                     st.success("Thresholds loaded!")
         with col3:
-            show_pairplot = st.button("Generate Pair Plot")
+            show_pairplot = st.button("Generate Pair Plot", key='gen_pairplot_1')
         
         if show_pairplot:
             df_for_pairgrid = df.copy()
@@ -1122,7 +1122,7 @@ def main():
         with col1:
             highlight_feature = st.selectbox("Highlight feature (optional)", ["None"] + list(df.select_dtypes(include=[np.number]).columns), key='highlight_pairplot_2')
         with col2:
-            show_pairplot = st.button("Generate Pair Plot")
+            show_pairplot = st.button("Generate Pair Plot", key='gen_pairplot_2')
         
         if show_pairplot:
             df_for_pairgrid = df.copy()
